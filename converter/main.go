@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"strings"
+	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -15,6 +16,10 @@ var (
 	vscode    = flag.Bool("vscode", false, "Do the converstion for VsCode")
 	atom      = flag.Bool("atom", false, "Do the converstion for Atom")
 )
+
+type Provider struct {
+	 Information 
+}
 
 func listYaml(dir string) ([]os.FileInfo, error) {
 
@@ -56,7 +61,13 @@ func main() {
 	}
 
 	for _, f := range yamlfiles{
-		fmt.Print(f.Name())
+		data, err := ioutil.ReadFile(*importDir + f.Name())
+
+		if err !=nil {
+			log.Fatal(err)
+		}
+
+		yaml.Unmarshal(data, )
 	}
 
 }
