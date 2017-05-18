@@ -1,0 +1,21 @@
+{
+    "name": "terraform-auto-snippets",
+    "displayName": "terraform-auto-snippets",
+    "description": "Terraform snippets automaticly create form the official Terraform documentation",
+    "version": "0.0.1",
+    "publisher": "sohl-coveo",
+    "engines": {
+        "vscode": "^1.12.0"
+    },
+    "categories": [
+        "Snippets"
+    ],
+    "contributes": {
+        "snippets": [
+            {
+                "language": "terraform",
+                "path": "./snippets/snippets.json"
+            }
+        ]
+    }
+}
