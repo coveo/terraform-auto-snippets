@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
+	"github.com/drhodes/golorem"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,29 +21,28 @@ func main() {
 	}
 }
 
-type Information struct {
-	Name        string
-	Description string
-}
-
 type Provider struct {
-	Information
+	Name          string
+	Description   string
 	Arguments     []Argument
 	DataResources []Data
 	Resources     []Resource
 }
 
 type Argument struct {
-	Information
-	Required bool
+	Name        string
+	Description string
+	Required    bool
 }
 
 type Data struct {
-	Information
+	Name        string
+	Description string
 }
 
 type Resource struct {
-	Information
+	Name        string
+	Description string
 }
 
 func getTerraformHelp() (err error) {
@@ -64,16 +65,24 @@ func getTerraformHelp() (err error) {
 
 	result := map[string]Provider{}
 
+	r := rand.New(rand.NewSource(0))
+
 	doc.Find(".active ul a").Each(func(i int, s *goquery.Selection) {
 		name := s.Text()
 		href, ok := s.Attr("href")
 		if ok {
+			arguments := make([]Argument, r.Intn(10)+1)
+			for i := 0; i < len(arguments); i++ {
+				arguments[i] = Argument{
+					Name:        lorem.Word(3, 15),
+					Description: lorem.Sentence(2, 10),
+					Required:    r.Intn(3) != 0,
+				}
+			}
 			provider := Provider{
-				Information: Information{
-					Name:        strings.ToLower(name),
-					Description: fmt.Sprintf(`This is the description of "%s"`, name),
-				},
-				Arguments:     []Argument{},
+				Name:          strings.ToLower(name),
+				Description:   fmt.Sprintf(`This is the description of "%s"`, name),
+				Arguments:     arguments,
 				DataResources: []Data{},
 				Resources:     []Resource{},
 			}
@@ -93,7 +102,7 @@ func getTerraformHelp() (err error) {
 	})
 
 	fmt.Println(result)
-	err = saveToYaml("test.yml", result)
+	err = saveToYaml("../mock.yml", result)
 	return
 }
 
