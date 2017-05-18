@@ -12,6 +12,7 @@ import (
 	"os"
 	"strings"
 	// "google.golang.org/api/urlshortener/v1"
+	"path/filepath"
 )
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 type Provider struct {
 	Name          string
 	Description   string
+	URL           string
 	Arguments     []Argument
 	DataResources []Data
 	Resources     []Resource
@@ -38,12 +40,11 @@ type Argument struct {
 type Data struct {
 	Name        string
 	Description string
+	URL         string
+	Arguments   []Argument
 }
 
-type Resource struct {
-	Name        string
-	Description string
-}
+type Resource Data
 
 func getTerraformHelp() (err error) {
 	uri := "https://www.terraform.io/docs/providers/index.html"
@@ -65,26 +66,17 @@ func getTerraformHelp() (err error) {
 
 	result := map[string]Provider{}
 
-	r := rand.New(rand.NewSource(0))
-
 	doc.Find(".active ul a").Each(func(i int, s *goquery.Selection) {
 		name := s.Text()
 		href, ok := s.Attr("href")
 		if ok {
-			arguments := make([]Argument, r.Intn(10)+1)
-			for i := 0; i < len(arguments); i++ {
-				arguments[i] = Argument{
-					Name:        lorem.Word(3, 15),
-					Description: lorem.Sentence(2, 10),
-					Required:    r.Intn(3) != 0,
-				}
-			}
 			provider := Provider{
 				Name:          strings.ToLower(name),
 				Description:   fmt.Sprintf(`This is the description of "%s"`, name),
-				Arguments:     arguments,
-				DataResources: []Data{},
-				Resources:     []Resource{},
+				URL:           getURL(name),
+				Arguments:     getArgs(),
+				DataResources: getData(name),
+				Resources:     getResources(name),
 			}
 			result[name] = provider
 			fmt.Println(i, name)
@@ -101,7 +93,6 @@ func getTerraformHelp() (err error) {
 		}
 	})
 
-	fmt.Println(result)
 	err = saveToYaml("../mock.yml", result)
 	return
 }
@@ -113,4 +104,49 @@ func saveToYaml(filename string, data interface{}) error {
 	}
 
 	return ioutil.WriteFile(filename, buffer, 0644)
+}
+
+func getArgs() []Argument {
+	result := make([]Argument, rand.Intn(10)+1)
+	for i := 0; i < len(result); i++ {
+		result[i] = Argument{
+			Name:        lorem.Word(3, 15),
+			Description: lorem.Sentence(2, 10),
+			Required:    rand.Intn(3) != 0,
+		}
+	}
+	return result
+}
+
+func getResources(path string) []Resource {
+	result := make([]Resource, rand.Intn(200)+3)
+	for i := 0; i < len(result); i++ {
+		name := lorem.Word(3, 15)
+		result[i] = Resource{
+			Name:        name,
+			Description: lorem.Sentence(2, 10),
+			URL:         getURL(filepath.Join(path, name)),
+			Arguments:   getArgs(),
+		}
+	}
+	return result
+}
+
+func getData(path string) []Data {
+	result := make([]Data, rand.Intn(10))
+	for i := 0; i < len(result); i++ {
+		name := lorem.Word(3, 15)
+		result[i] = Data{
+			Name:        name,
+			Description: lorem.Sentence(2, 10),
+			URL:         getURL(filepath.Join(path, name)),
+			Arguments:   getArgs(),
+		}
+	}
+	return result
+}
+
+func getURL(path string) string {
+	s := lorem.Sentence(2, 4)
+	return fmt.Sprintf("https://www.terraform.io/docs/providers/%s/%s", path, strings.Replace(s[:len(s)-1], " ", "/", -1))
 }
