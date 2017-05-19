@@ -6,8 +6,10 @@ import (
 )
 
 func main() {
-	err := getTerraformHelp()
+	providers, err := getTerraformDocs()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
+
+	err = saveToYaml("mock.yml", providers)
 }
