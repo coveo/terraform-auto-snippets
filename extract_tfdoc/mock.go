@@ -36,20 +36,6 @@ func getMockResources(path string) []data.Resource {
 	return result
 }
 
-func getMockData(path string) []data.Data {
-	result := make([]data.Data, rand.Intn(10))
-	for i := 0; i < len(result); i++ {
-		name := lorem.Word(3, 15)
-		result[i] = data.Data{
-			Name:        name,
-			Description: lorem.Sentence(2, 10),
-			URL:         getMockURL(filepath.Join(path, name)),
-			Arguments:   getMockArgs(),
-		}
-	}
-	return result
-}
-
 func getMockURL(path string) string {
 	s := lorem.Sentence(2, 4)
 	return fmt.Sprintf("https://www.terraform.io/docs/providers/%s/%s", path, strings.Replace(s[:len(s)-1], " ", "/", -1))

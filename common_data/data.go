@@ -6,22 +6,21 @@ type Provider struct {
 	Description   string     `yaml:"description"`
 	URL           string     `yaml:"url"`
 	Arguments     []Argument `yaml:"arguments"`
-	DataResources []Data     `yaml:"dataresources"`
+	DataResources []Resource `yaml:"dataresources"`
 	Resources     []Resource `yaml:"resources"`
 }
 
 type Argument struct {
 	Name        string     `yaml:"name"`
 	Description string     `yaml:"description"`
+	URL         string     `yaml:"url"`
 	Required    bool       `yaml:"required"`
 	Arguments   []Argument `yaml:"arguments"`
 }
 
-type Data struct {
+type Resource struct {
 	Name        string     `yaml:"name"`
 	Description string     `yaml:"description"`
 	URL         string     `yaml:"url"`
 	Arguments   []Argument `yaml:"arguments"`
 }
-
-type Resource Data
