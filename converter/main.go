@@ -18,7 +18,17 @@ var (
 )
 
 type Provider struct {
-	 Information 
+	Name 		string 		`yaml:"name"`
+	Description 	string 		`yaml:"description"`
+	Arguments	[]Argument 	`yaml:"arguments"`
+	Dataresources	[]string	`yaml:"dataresources"`
+	Resources	[]string	`yaml:"resources"`
+}
+
+type Argument struct {
+	Name 		string `yaml:"name"`
+	Description 	string `yaml:"description"`
+	Requierd	bool 	`yame:"required"`
 }
 
 func listYaml(dir string) ([]os.FileInfo, error) {
@@ -59,7 +69,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	var p map[string]Provider
 	for _, f := range yamlfiles{
 		data, err := ioutil.ReadFile(*importDir + f.Name())
 
@@ -67,7 +77,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		yaml.Unmarshal(data, )
+		yaml.Unmarshal(data, &p)
 	}
-
+	fmt.Println(p)
 }
