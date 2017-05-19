@@ -64,8 +64,8 @@ func createSnippetBody(kind string, name string, url string, args []Argument) []
 	// Get a clean name of resource (without space)
 	cleanName := sanitize.Name(name)
 	// Create the string for vscode
-	body := []string{"#Configure the " + name,
-		"#Doc : " + url,
+	body := []string{"# Configure the " + name,
+		"# Doc : " + url,
 		ResourceName(kind, cleanName) + " {"}
 
 	// Add all args
@@ -73,12 +73,12 @@ func createSnippetBody(kind string, name string, url string, args []Argument) []
 		arg := "\t"
 		// If the args is not requiered we comment it
 		if a.Requierd == "false" {
-			arg = arg + "#(optional)"
+			arg = arg + "#"
 		}
 
 		arg = arg + a.Name + " = "
 
-		body = append(body, "\t#"+a.Description+" (require="+a.Requierd+")")
+		body = append(body, "\t# "+a.Description+" (require="+a.Requierd+")")
 		body = append(body, arg)
 	}
 
