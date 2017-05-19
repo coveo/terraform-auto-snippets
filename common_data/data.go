@@ -11,9 +11,10 @@ type Provider struct {
 }
 
 type Argument struct {
-	Name        string `yaml:"name"`
-	Description string `yaml:"description"`
-	Required    bool   `yaml:"required"`
+	Name        string     `yaml:"name"`
+	Description string     `yaml:"description"`
+	Required    bool       `yaml:"required"`
+	Arguments   []Argument `yaml:"arguments"`
 }
 
 type Data struct {

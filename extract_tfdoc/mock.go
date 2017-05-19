@@ -10,7 +10,7 @@ import (
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 )
 
-func getArgs() []data.Argument {
+func getMockArgs() []data.Argument {
 	result := make([]data.Argument, rand.Intn(10)+1)
 	for i := 0; i < len(result); i++ {
 		result[i] = data.Argument{
@@ -22,35 +22,35 @@ func getArgs() []data.Argument {
 	return result
 }
 
-func getResources(path string) []data.Resource {
+func getMockResources(path string) []data.Resource {
 	result := make([]data.Resource, rand.Intn(200)+3)
 	for i := 0; i < len(result); i++ {
 		name := lorem.Word(3, 15)
 		result[i] = data.Resource{
 			Name:        name,
 			Description: lorem.Sentence(2, 10),
-			URL:         getURL(filepath.Join(path, name)),
-			Arguments:   getArgs(),
+			URL:         getMockURL(filepath.Join(path, name)),
+			Arguments:   getMockArgs(),
 		}
 	}
 	return result
 }
 
-func getData(path string) []data.Data {
+func getMockData(path string) []data.Data {
 	result := make([]data.Data, rand.Intn(10))
 	for i := 0; i < len(result); i++ {
 		name := lorem.Word(3, 15)
 		result[i] = data.Data{
 			Name:        name,
 			Description: lorem.Sentence(2, 10),
-			URL:         getURL(filepath.Join(path, name)),
-			Arguments:   getArgs(),
+			URL:         getMockURL(filepath.Join(path, name)),
+			Arguments:   getMockArgs(),
 		}
 	}
 	return result
 }
 
-func getURL(path string) string {
+func getMockURL(path string) string {
 	s := lorem.Sentence(2, 4)
 	return fmt.Sprintf("https://www.terraform.io/docs/providers/%s/%s", path, strings.Replace(s[:len(s)-1], " ", "/", -1))
 }

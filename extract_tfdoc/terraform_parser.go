@@ -45,6 +45,9 @@ func getProviders(uri url.URL) (providers map[string]data.Provider, err error) {
 				return
 			}
 
+			// if link.String() != "/docs/providers/aws/index.html" {
+			// 	return
+			// }
 			if provider, err := getProvider(*uri.ResolveReference(link)); err == nil {
 				providers[name] = *provider
 			} else {
@@ -82,7 +85,6 @@ func getProvider(uri url.URL) (provider *data.Provider, err error) {
 
 	titleText := strings.TrimSpace(titleNode.Data)
 
-	// doc.Find("h1").Each(func(i int, s *goquery.Selection) {
 	id, ok := title.Attr("id")
 	if !ok {
 		fmt.Fprintf(os.Stderr, "No id found in title for %s\n", uri.String())
@@ -90,13 +92,13 @@ func getProvider(uri url.URL) (provider *data.Provider, err error) {
 	}
 
 	provider = &data.Provider{
-		Name:          id,
-		Title:         titleText,
-		Description:   title.Next().Text(),
-		URL:           uri.String(),
-		Arguments:     getArgs(),
-		DataResources: getData(id),
-		Resources:     getResources(id),
+		Name:        strings.Replace(id, "-provider", "", 1),
+		Title:       titleText,
+		Description: title.Next().Text(),
+		URL:         uri.String(),
+		Arguments:   getArgs(titleText, doc.Find("#argument-reference")),
+		// DataResources: getMockData(id),
+		// Resources:     getMockResources(id),
 	}
 
 	return
@@ -114,5 +116,42 @@ func getDocument(uri url.URL) (result *goquery.Document, err error) {
 	if err == nil {
 		result, err = goquery.NewDocumentFromResponse(response)
 	}
+	return
+}
+
+func getArgs(name string, head *goquery.Selection) (arguments []data.Argument) {
+	if head.Length() == 0 {
+		fmt.Fprintln(os.Stderr, "No argument for", name)
+		return
+	}
+
+	var subArgument string
+	_ = subArgument
+	head.NextFilteredUntil("ul, p", "h2").Each(func(i int, section *goquery.Selection) {
+		nodeType := section.Nodes[0].Data
+		switch nodeType {
+		case "ul":
+			section.Find("li p").Each(func(i int, arg *goquery.Selection) {
+				const req = "(Required)"
+				const opt = "(Optional)"
+				argName, _ := arg.Find("a").First().Attr("name")
+				description := strings.TrimSpace(strings.TrimPrefix(arg.Text(), argName+" - "))
+				required := strings.Contains(description, req)
+				if required {
+					description = strings.Replace(strings.TrimSpace(description), req, "", 1)
+				} else {
+					description = strings.Replace(strings.TrimSpace(description), opt, "", 1)
+				}
+
+				arguments = append(arguments, data.Argument{
+					Name:        argName,
+					Description: strings.TrimSpace(description),
+					Required:    required,
+				})
+			})
+		case "p":
+		}
+
+	})
 	return
 }
