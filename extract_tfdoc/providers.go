@@ -10,7 +10,7 @@ import (
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 )
 
-func getProviders(uri url.URL) (providers map[string]data.Provider, err error) {
+func getProviders(uri url.URL) (providers data.ProviderMap, err error) {
 	providers = map[string]data.Provider{}
 	doc, err := getDocument(uri)
 	if err != nil {
@@ -45,7 +45,7 @@ func getProviders(uri url.URL) (providers map[string]data.Provider, err error) {
 		}
 	})
 
-	PrintInfo("%d Data sources, %d Resources", totalData, totalResources)
+	PrintInfo("%d providers, %d data sources, %d resources", len(providers), totalData, totalResources)
 	return
 }
 

@@ -10,7 +10,7 @@ import (
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 )
 
-func getResources(providerName string, parent url.URL, head *goquery.Selection, data bool) (resources []data.Resource) {
+func getResources(providerName string, parent url.URL, head *goquery.Selection, data bool) (resources data.ResourceList) {
 	sections := head.SiblingsFiltered("li")
 	var selector = func(sel *goquery.Selection) *goquery.Selection { return sel.Find("ul li") }
 

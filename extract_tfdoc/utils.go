@@ -26,7 +26,7 @@ func getDocument(uri url.URL) (result *goquery.Document, err error) {
 	return
 }
 
-func getArgs(name string, uri url.URL, head *goquery.Selection) (arguments []data.Argument) {
+func getArgs(name string, uri url.URL, head *goquery.Selection) (arguments data.ArgumentList) {
 	if head.Length() == 0 {
 		return
 	}
