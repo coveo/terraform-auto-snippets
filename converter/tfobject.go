@@ -7,7 +7,7 @@ type TfObject struct {
 
 type TfObjectUrl struct {
 	TfObject `yaml:",inline"`
-	Url      string `yaml:"url"`
+	URL      string `yaml:"url"`
 }
 
 type TfObjectResource struct {
@@ -23,7 +23,7 @@ type Provider struct {
 
 type Argument struct {
 	TfObject `yaml:",inline"`
-	Requierd string `yaml:"required"`
+	Required string `yaml:"required"`
 }
 
 type Resource struct {

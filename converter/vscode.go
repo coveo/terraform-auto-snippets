@@ -19,21 +19,21 @@ type VscodeSnippet struct {
 func ProviderToVscodeSnippet(p Provider) *VscodeSnippet {
 	prefix := "provider-" + sanitize.Name(p.Name)
 
-	body := createSnippetBody(reflect.TypeOf(p).Name(), p.Name, p.Url, p.Arguments)
+	body := createSnippetBody(reflect.TypeOf(p).Name(), p.Name, p.URL, p.Arguments)
 	return ToVscodeSnippet(p.Description, prefix, body)
 }
 
 func DataResourceToVscodeSnippet(d Dataresource, providerName string) *VscodeSnippet {
 	prefix := "data-" + sanitize.Name(providerName) + "-" + sanitize.Name(d.Name)
 
-	body := createSnippetBody(reflect.TypeOf(d).Name(), d.Name, d.Url, d.Arguments)
+	body := createSnippetBody(reflect.TypeOf(d).Name(), d.Name, d.URL, d.Arguments)
 	return ToVscodeSnippet(d.Description, prefix, body)
 }
 
 func ResourceToVscodeSnippet(r Resource, providerName string) *VscodeSnippet {
 	prefix := "res-" + sanitize.Name(providerName) + "-" + sanitize.Name(r.Name)
 
-	body := createSnippetBody(reflect.TypeOf(r).Name(), r.Name, r.Url, r.Arguments)
+	body := createSnippetBody(reflect.TypeOf(r).Name(), r.Name, r.URL, r.Arguments)
 	return ToVscodeSnippet(r.Description, prefix, body)
 }
 
@@ -46,7 +46,7 @@ func ToVscodeSnippet(description string, prefix string, body []string) *VscodeSn
 }
 
 func createSnippetBody(kind string, name string, url string, args []Argument) []string {
-	// // Get the kind of Struc
+	// // Get the kind of struct
 	// kind := reflect.TypeOf(obj).Name()
 	// Convert obj to standard Ressource
 
@@ -71,14 +71,14 @@ func createSnippetBody(kind string, name string, url string, args []Argument) []
 	// Add all args
 	for _, a := range args {
 		arg := "\t"
-		// If the args is not requiered we comment it
-		if a.Requierd == "false" {
+		// If the args is not required we comment it
+		if a.Required == "false" {
 			arg = arg + "#"
 		}
 
 		arg = arg + a.Name + " = "
 
-		body = append(body, "\t# "+a.Description+" (require="+a.Requierd+")")
+		body = append(body, "\t# "+a.Description+" (require="+a.Required+")")
 		body = append(body, arg)
 	}
 
@@ -99,7 +99,7 @@ func ResourceName(kind string, name string) string {
 	return result
 }
 
-// create snipoet
+// create snippet
 func VscodeCreateSnippets(p *map[string]Provider) {
 
 	snippets := map[string]VscodeSnippet{}

@@ -2,24 +2,21 @@ package main
 
 import (
 	"flag"
-
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"gopkg.in/yaml.v2"
 )
 
 var (
-	importDir = flag.String("import-dir", "", "Directerory with yaml files to import")
-	vscodeArg = flag.Bool("vscode", false, "Do the converstion for VsCode")
-	atomArg   = flag.Bool("atom", false, "Do the converstion for Atom")
+	importDir = flag.String("import-dir", "", "Directory with yaml files to import")
+	vscodeArg = flag.Bool("vscode", false, "Do the conversion for VsCode")
+	atomArg   = flag.Bool("atom", false, "Do the conversion for Atom")
 )
 
 func listYaml(dir string) ([]os.FileInfo, error) {
-
 	files, err := ioutil.ReadDir(dir)
 
 	if err != nil {
@@ -40,7 +37,6 @@ func main() {
 	flag.Parse()
 
 	if *vscodeArg == false && *atomArg == false {
-
 		log.Println("You have to specify one of editor for convertion")
 		flag.Usage()
 		os.Exit(1)
@@ -68,5 +64,4 @@ func main() {
 		yaml.Unmarshal(data, &p)
 	}
 	VscodeCreateSnippets(&p)
-
 }
