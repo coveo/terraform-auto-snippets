@@ -5,6 +5,8 @@ import (
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 	"os"
+
+	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
 var (
@@ -21,12 +23,12 @@ func main() {
 	kingpin.Parse()
 
 	if *outfile == nil {
-		PrintWarning("The result will go to stdout")
+		utils.PrintWarning("The result will go to stdout")
 		*outfile = os.Stdout
 	}
 
 	if err := process(); err != nil {
-		PrintError("%v", err)
+		utils.PrintError("%v", err)
 	}
 }
 

@@ -1,61 +1,44 @@
 package main
 
 import (
-	"flag"
+	"fmt"
+	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"log"
 	"os"
-	"path/filepath"
-	"strings"
 )
 
 var (
-	importDir = flag.String("import-dir", "", "Directory with yaml files to import")
-	vscodeArg = flag.Bool("vscode", false, "Do the conversion for VsCode")
-	atomArg   = flag.Bool("atom", false, "Do the conversion for Atom")
+	app       = kingpin.New(os.Args[0], "Terraform extension snippet generator for VSCode and Atom.")
+	vscodeArg = app.Flag("vscode", "Do the conversion for VsCode").Short('v').Bool()
+	atomArg   = app.Flag("atom", "Do the conversion for Atom").Short('a').Bool()
+	files     = app.Arg("file", "Yaml files to import").ExistingFiles()
 )
 
-func listYaml(dir string) ([]os.FileInfo, error) {
-	files, err := ioutil.ReadDir(dir)
+func main() {
+	if err := process(); err != nil {
 
-	if err != nil {
-		return nil, err
 	}
-
-	yamlFile := []os.FileInfo{}
-	for _, f := range files {
-		ext := strings.ToLower(filepath.Ext(f.Name()))
-		if ext == ".yaml" || ext == ".yml" {
-			yamlFile = append(yamlFile, f)
-		}
-	}
-	return yamlFile, nil
 }
 
-func main() {
-	flag.Parse()
+func process() error {
+	app.Author("Coveo")
+	kingpin.CommandLine = app
+	kingpin.CommandLine.HelpFlag.Short('h')
+	kingpin.Parse()
 
 	if *vscodeArg == false && *atomArg == false {
-		log.Println("You have to specify one of editor for convertion")
-		flag.Usage()
-		os.Exit(1)
+		return fmt.Errorf("You must specify at least one editor for convertion")
 	}
 
-	if *importDir == "" {
-		log.Println("You have to specify where are the file")
-		flag.Usage()
-		os.Exit(1)
+	if len(*files) == 0 {
+		return fmt.Errorf("You have to specify at least one file to import")
 	}
 
-	yamlfiles, err := listYaml(*importDir)
-
-	if err != nil {
-		log.Fatal(err)
-	}
 	var p map[string]Provider
-	for _, f := range yamlfiles {
-		data, err := ioutil.ReadFile(*importDir + f.Name())
+	for _, file := range *files {
+		data, err := ioutil.ReadFile(file)
 
 		if err != nil {
 			log.Fatal(err)
@@ -63,5 +46,7 @@ func main() {
 
 		yaml.Unmarshal(data, &p)
 	}
+
 	VscodeCreateSnippets(&p)
+	return nil
 }

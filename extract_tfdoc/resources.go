@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	data "github.com/coveo/terraform-auto-snippets/common_data"
+	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
 func getResources(providerName string, parent url.URL, head *goquery.Selection, data bool) (resources data.ResourceList) {
@@ -17,13 +18,13 @@ func getResources(providerName string, parent url.URL, head *goquery.Selection, 
 	var warning = func(format string, args ...interface{}) {
 		if data {
 			// We only print the warning on Data to avoid printing it twice
-			PrintWarning(format, args...)
+			utils.PrintWarning(format, args...)
 		}
 	}
 
 	switch sections.Length() {
 	case 0:
-		PrintError("   Unable to find resources section")
+		utils.PrintError("   Unable to find resources section")
 	case 1:
 		// This is a special case where the data is in the current section (occurs for External and HTTP)
 		warning("   Special handling to find resources")
@@ -48,7 +49,7 @@ func getResources(providerName string, parent url.URL, head *goquery.Selection, 
 			if previous.Length() == 1 {
 				sectionTitle = previous.Text()
 				if data {
-					PrintWarning("   Title stored in previous element for %s", sectionTitle)
+					utils.PrintWarning("   Title stored in previous element for %s", sectionTitle)
 				}
 				elements = section
 			} else {
@@ -58,7 +59,7 @@ func getResources(providerName string, parent url.URL, head *goquery.Selection, 
 		}
 
 		if sectionTitle == "" {
-			PrintError("   Unable to find section name")
+			utils.PrintError("   Unable to find section name")
 			return
 		}
 
@@ -72,12 +73,12 @@ func getResources(providerName string, parent url.URL, head *goquery.Selection, 
 			href, _ := element.Attr("href")
 			link, err := url.Parse(href)
 			if err != nil {
-				PrintError("   Malformed URL %v", href)
+				utils.PrintError("   Malformed URL %v", href)
 				return
 			}
 			resource, err := getResource(sectionTitle, *parent.ResolveReference(link))
 			if err != nil {
-				PrintError("   Error while getting %s: %v", href, err)
+				utils.PrintError("   Error while getting %s: %v", href, err)
 				return
 			}
 			resources = append(resources, *resource)
@@ -88,7 +89,7 @@ func getResources(providerName string, parent url.URL, head *goquery.Selection, 
 }
 
 func getResource(section string, uri url.URL) (resource *data.Resource, err error) {
-	doc, err := getDocument(uri)
+	doc, err := utils.GetDocument(uri)
 	if err != nil {
 		return
 	}
@@ -101,7 +102,7 @@ func getResource(section string, uri url.URL) (resource *data.Resource, err erro
 	case 1:
 		break
 	default:
-		PrintWarning("Found more that one title (%d) in %s", title.Length(), uri.String())
+		utils.PrintWarning("Found more that one title (%d) in %s", title.Length(), uri.String())
 		title = title.First()
 	}
 
@@ -115,13 +116,13 @@ func getResource(section string, uri url.URL) (resource *data.Resource, err erro
 
 	id, ok := title.Attr("id")
 	if !ok {
-		PrintWarning("No id found in title for %s", uri.String())
+		utils.PrintWarning("No id found in title for %s", uri.String())
 		id = strings.ToLower(strings.Replace(titleText, " ", "-", -1))
 	}
 
 	resource = &data.Resource{
 		Name:        id,
-		Description: trim(title.Next().Text()),
+		Description: utils.Trim(title.Next().Text()),
 		URL:         uri.String(),
 		Section:     section,
 		Arguments:   getArgs(titleText, uri, doc.Find("#argument-reference")),

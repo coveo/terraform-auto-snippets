@@ -8,11 +8,12 @@ import (
 	"strings"
 
 	data "github.com/coveo/terraform-auto-snippets/common_data"
+	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
-func getProviders(uri url.URL, filters ...string) (providers data.ProviderMap, err error) {
+func getProviders(uri url.URL, filters []string) (providers data.ProviderMap, err error) {
 	providers = map[string]data.Provider{}
-	doc, err := getDocument(uri)
+	doc, err := utils.GetDocument(uri)
 	if err != nil {
 		return
 	}
@@ -24,7 +25,7 @@ func getProviders(uri url.URL, filters ...string) (providers data.ProviderMap, e
 		if ok {
 			link, err := url.Parse(href)
 			if err != nil {
-				PrintWarning("Malformed URL %v for provider %s", href, name)
+				utils.PrintWarning("Malformed URL %v for provider %s", href, name)
 				return
 			}
 
@@ -48,20 +49,20 @@ func getProviders(uri url.URL, filters ...string) (providers data.ProviderMap, e
 				totalResources += len(provider.Resources)
 
 				if len(provider.DataResources)+len(provider.Resources) == 0 {
-					PrintError("No resource found for %s", name)
+					utils.PrintError("No resource found for %s", name)
 				}
 			} else {
-				PrintError("Unable to get provider %s: %v", name, err)
+				utils.PrintError("Unable to get provider %s: %v", name, err)
 			}
 		}
 	})
 
-	PrintInfo("%d providers, %d data sources, %d resources", len(providers), totalData, totalResources)
+	utils.PrintInfo("%d providers, %d data sources, %d resources", len(providers), totalData, totalResources)
 	return
 }
 
 func getProvider(uri url.URL) (provider *data.Provider, err error) {
-	doc, err := getDocument(uri)
+	doc, err := utils.GetDocument(uri)
 	if err != nil {
 		return
 	}
@@ -74,7 +75,7 @@ func getProvider(uri url.URL) (provider *data.Provider, err error) {
 	case 1:
 		break
 	default:
-		PrintWarning("Found more that one title (%d) in %s", title.Length(), uri.String())
+		utils.PrintWarning("Found more that one title (%d) in %s", title.Length(), uri.String())
 		title = title.First()
 	}
 
@@ -84,15 +85,15 @@ func getProvider(uri url.URL) (provider *data.Provider, err error) {
 		return
 	}
 
-	providerName := trim(titleNode.Data)
+	providerName := utils.Trim(titleNode.Data)
 
 	id, ok := title.Attr("id")
 	if !ok {
-		PrintWarning("No id found in title for %s", uri.String())
+		utils.PrintWarning("No id found in title for %s", uri.String())
 		id = strings.ToLower(strings.Replace(providerName, " ", "-", -1))
 	}
 
-	PrintInfo(providerName)
+	utils.PrintInfo(providerName)
 	provider = &data.Provider{
 		Name:          strings.Replace(id, "-provider", "", 1),
 		Title:         providerName,
