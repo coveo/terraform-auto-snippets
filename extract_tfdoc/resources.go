@@ -9,6 +9,7 @@ import (
 
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 	"github.com/coveo/terraform-auto-snippets/utils"
+	"os"
 )
 
 func getResources(providerName string, parent url.URL, head *goquery.Selection, data bool) (resources data.ResourceList) {
@@ -68,7 +69,7 @@ func getResources(providerName string, parent url.URL, head *goquery.Selection, 
 			return
 		}
 
-		fmt.Println(" ▪︎", sectionTitle, elements.Length())
+		fmt.Fprintln(os.Stderr, " ▪︎", sectionTitle, elements.Length())
 		elements.Find("a").Each(func(i int, element *goquery.Selection) {
 			href, _ := element.Attr("href")
 			link, err := url.Parse(href)

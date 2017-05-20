@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+
+	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
 var (
@@ -18,11 +20,12 @@ var (
 
 func main() {
 	if err := process(); err != nil {
-
+		utils.PrintError("%v", err)
+		app.Usage(os.Args[1:])
 	}
 }
 
-func process() error {
+func process() (err error) {
 	app.Author("Coveo")
 	kingpin.CommandLine = app
 	kingpin.CommandLine.HelpFlag.Short('h')
@@ -32,21 +35,34 @@ func process() error {
 		return fmt.Errorf("You must specify at least one editor for convertion")
 	}
 
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		*files = append(*files, "-")
+	}
+
 	if len(*files) == 0 {
 		return fmt.Errorf("You have to specify at least one file to import")
 	}
 
 	var p map[string]Provider
 	for _, file := range *files {
-		data, err := ioutil.ReadFile(file)
-
+		var data []byte
+		if file == "-" {
+			data, err = ioutil.ReadAll(os.Stdin)
+			file = "stdin"
+		} else {
+			data, err = ioutil.ReadFile(file)
+		}
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		yaml.Unmarshal(data, &p)
+		err = yaml.Unmarshal(data, &p)
+		if err != nil {
+			log.Fatal(fmt.Errorf("Error when decoding %s: %v", file, err))
+		}
 	}
 
-	VscodeCreateSnippets(&p)
-	return nil
+	VscodeCreateSnippets(p)
+	return
 }

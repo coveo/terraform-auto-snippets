@@ -9,6 +9,7 @@ import (
 
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 	"github.com/coveo/terraform-auto-snippets/utils"
+	"os"
 )
 
 func getProviders(uri url.URL, filters []string) (providers data.ProviderMap, err error) {
@@ -103,7 +104,7 @@ func getProvider(uri url.URL) (provider *data.Provider, err error) {
 		DataResources: getResources(providerName, uri, doc.Find("ul.nav.docs-sidenav li.active"), true),
 		Resources:     getResources(providerName, uri, doc.Find("ul.nav.docs-sidenav li.active"), false),
 	}
-	fmt.Println()
+	fmt.Fprintln(os.Stderr)
 
 	return
 }

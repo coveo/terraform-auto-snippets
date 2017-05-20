@@ -100,10 +100,10 @@ func ResourceName(kind string, name string) string {
 }
 
 // create snippet
-func VscodeCreateSnippets(p *map[string]Provider) {
+func VscodeCreateSnippets(p map[string]Provider) {
 
 	snippets := map[string]VscodeSnippet{}
-	for _, v := range *p {
+	for _, v := range p {
 
 		snippets[v.Name] = *ProviderToVscodeSnippet(v)
 		for _, d := range v.Dataresources {
