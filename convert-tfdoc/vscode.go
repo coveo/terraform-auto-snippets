@@ -126,6 +126,9 @@ func VscodeCreateSnippets(p data.ProviderList) {
 	result, err := json.MarshalIndent(&snippets, "", "    ")
 	utils.PanicOnError(err, "Converting to YAML")
 
+	err = RestoreAssets(*outDir, "")
+	utils.PanicOnError(err, "Restoring assets")
+
 	// TODO: cannot assume that we execute the program in this specific directory
 	const filename = "../vscode/terraform-auto-snippets/snippets/snippets.json"
 	err = ioutil.WriteFile(filename, result, 0644)

@@ -1,6 +1,6 @@
 install:
 	go get -u github.com/jteeuwen/go-bindata/...
-	(cd convert-tfdoc; go-bindata -o tempfile_resources.go resources)
+	(cd convert-tfdoc; go-bindata -o tempfile_resources.go -prefix resources/ resources)
 	go install ./convert-tfdoc ./extract-tfdoc
 
 deploy:
