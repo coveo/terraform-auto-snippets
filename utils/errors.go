@@ -2,27 +2,36 @@ package utils
 
 import (
 	"fmt"
-	"github.com/fatih/color"
 	"os"
 )
 
-var (
-	infoPrinter    = color.New(color.FgGreen).SprintfFunc()
-	warningPrinter = color.New(color.FgYellow).SprintfFunc()
-	errorPrinter   = color.New(color.FgRed).SprintfFunc()
-)
-
-// PrintInfo is used to print a colored message to the stderr
-func PrintInfo(format string, args ...interface{}) {
-	fmt.Fprintln(os.Stderr, infoPrinter(format, args...))
+// TrapErrors recovers any error raised by panic and print it to stderr
+func TrapErrors(handler func(string, ...interface{})) {
+	if err := recover(); err != nil {
+		if handler == nil {
+			handler = func(format string, args ...interface{}) {
+				PrintError("%v", err)
+				os.Exit(1)
+			}
+		}
+		handler("%v", err)
+	}
 }
 
-// PrintWarning is used to print a yellow warning message to the stderr
-func PrintWarning(format string, args ...interface{}) {
-	fmt.Fprintln(os.Stderr, warningPrinter(format, args...))
+// Assert issues a panic if the condition is not met
+func Assert(condition bool, format string, args ...interface{}) {
+	if !condition {
+		panic(fmt.Errorf(format, args...))
+	}
 }
 
-// PrintError is used to print a red error message to the stderr
-func PrintError(format string, args ...interface{}) {
-	fmt.Fprintln(os.Stderr, errorPrinter(format, args...))
+// PanicOnError issues a panic if there is an error
+func PanicOnError(err error, args ...interface{}) {
+	if err != nil {
+		var userMessage string
+		if len(args) > 0 {
+			userMessage = fmt.Sprintf(" "+fmt.Sprintf("%v", args[0]), args[1:]...)
+		}
+		panic(fmt.Errorf("Error %v%s", err, userMessage))
+	}
 }

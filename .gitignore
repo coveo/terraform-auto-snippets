@@ -15,3 +15,6 @@
 .vscode
 debug
 .idea
+
+# All temporary file generated in the project
+tempfile_*.*

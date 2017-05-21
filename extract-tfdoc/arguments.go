@@ -9,7 +9,7 @@ import (
 	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
-func getArgs(name string, uri url.URL, head *goquery.Selection) (arguments data.ArgumentList) {
+func getArgs(name string, uri url.URL, head *goquery.Selection) (arguments []data.Argument) {
 	if head.Length() == 0 {
 		return
 	}
@@ -34,10 +34,12 @@ func getArgs(name string, uri url.URL, head *goquery.Selection) (arguments data.
 
 				url, _ := arg.Find("a[href]").Attr("href")
 				arguments = append(arguments, data.Argument{
-					Name:        argName,
-					Description: utils.Trim(description),
-					Required:    required,
-					URL:         uri.String() + url,
+					Base: data.Base{
+						Name:        argName,
+						Description: utils.Trim(description),
+						URL:         uri.String() + url,
+					},
+					Required: required,
 				})
 			})
 		case "p":

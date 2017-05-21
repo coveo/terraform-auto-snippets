@@ -1,68 +1,71 @@
 package main
 
 import (
-	"fmt"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
-	"log"
 	"os"
 
+	data "github.com/coveo/terraform-auto-snippets/common_data"
 	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
 var (
 	app       = kingpin.New(os.Args[0], "Terraform extension snippet generator for VSCode and Atom.")
+	prefix    = app.Flag("prefix", "Prefix to put before snippet name").Short('p').Default("tf").String()
 	vscodeArg = app.Flag("vscode", "Do the conversion for VsCode").Short('v').Bool()
 	atomArg   = app.Flag("atom", "Do the conversion for Atom").Short('a').Bool()
+	shortSnip = app.Flag("short", "Indicates to generate long version of snippets (enabled by default, --no-short to disable)").Default("true").Bool()
+	longSnip  = app.Flag("long", "Indicates to generate short version of snippets (enabled by default, --no-long to disable)").Default("true").Bool()
+	fullSnip  = app.Flag("full", "Indicates to generate full version of snippets").Short('f').Default("false").Bool()
 	files     = app.Arg("file", "Yaml files to import").ExistingFiles()
 )
 
 func main() {
-	if err := process(); err != nil {
-		utils.PrintError("%v", err)
-		app.Usage(os.Args[1:])
-	}
-}
+	// Handle eventual panic message
+	defer utils.TrapErrors(app.Fatalf)
 
-func process() (err error) {
 	app.Author("Coveo")
 	kingpin.CommandLine = app
 	kingpin.CommandLine.HelpFlag.Short('h')
 	kingpin.Parse()
 
-	if *vscodeArg == false && *atomArg == false {
-		return fmt.Errorf("You must specify at least one editor for convertion")
-	}
-
+	utils.Assert(*vscodeArg || *atomArg, "You must specify at least one editor for convertion")
 	stat, _ := os.Stdin.Stat()
 	if (stat.Mode() & os.ModeCharDevice) == 0 {
-		*files = append(*files, "-")
+		*files = append(*files, "[stdin]")
 	}
 
-	if len(*files) == 0 {
-		return fmt.Errorf("You have to specify at least one file to import")
-	}
+	utils.Assert(len(*files) > 0, "You must specify at least one file to import")
 
-	var p map[string]Provider
+	process()
+}
+
+func process() {
+	var providers data.ProviderList
+
 	for _, file := range *files {
-		var data []byte
-		if file == "-" {
-			data, err = ioutil.ReadAll(os.Stdin)
-			file = "stdin"
-		} else {
-			data, err = ioutil.ReadFile(file)
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
+		var buffer []byte
+		var err error
 
-		err = yaml.Unmarshal(data, &p)
-		if err != nil {
-			log.Fatal(fmt.Errorf("Error when decoding %s: %v", file, err))
+		switch file {
+		case "[stdin]":
+			buffer, err = ioutil.ReadAll(os.Stdin)
+		default:
+			buffer, err = ioutil.ReadFile(file)
 		}
+		utils.PanicOnError(err)
+
+		var p data.ProviderList
+		err = yaml.Unmarshal(buffer, &p)
+		utils.PanicOnError(err, "Error while decoding %s", file)
+		providers = append(providers, p...)
 	}
 
-	VscodeCreateSnippets(p)
-	return
+	if *vscodeArg {
+		VscodeCreateSnippets(providers)
+	}
+	if *atomArg {
+		utils.PrintWarning("Atom exporter not implemented yet")
+	}
 }

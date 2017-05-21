@@ -2,12 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"reflect"
 	"strings"
 
-	"io/ioutil"
-
 	"github.com/kennygrant/sanitize"
+
+	data "github.com/coveo/terraform-auto-snippets/common_data"
+	"github.com/coveo/terraform-auto-snippets/utils"
 )
 
 type VscodeSnippet struct {
@@ -16,21 +20,21 @@ type VscodeSnippet struct {
 	Body        []string `json:"body"`
 }
 
-func ProviderToVscodeSnippet(p Provider) *VscodeSnippet {
+func ProviderToVscodeSnippet(p data.Provider) *VscodeSnippet {
 	prefix := "provider-" + sanitize.Name(p.Name)
 
 	body := createSnippetBody(reflect.TypeOf(p).Name(), p.Name, p.URL, p.Arguments)
 	return ToVscodeSnippet(p.Description, prefix, body)
 }
 
-func DataResourceToVscodeSnippet(d Dataresource, providerName string) *VscodeSnippet {
+func DataResourceToVscodeSnippet(d data.Resource, providerName string) *VscodeSnippet {
 	prefix := "data-" + sanitize.Name(providerName) + "-" + sanitize.Name(d.Name)
 
 	body := createSnippetBody(reflect.TypeOf(d).Name(), d.Name, d.URL, d.Arguments)
 	return ToVscodeSnippet(d.Description, prefix, body)
 }
 
-func ResourceToVscodeSnippet(r Resource, providerName string) *VscodeSnippet {
+func ResourceToVscodeSnippet(r data.Resource, providerName string) *VscodeSnippet {
 	prefix := "res-" + sanitize.Name(providerName) + "-" + sanitize.Name(r.Name)
 
 	body := createSnippetBody(reflect.TypeOf(r).Name(), r.Name, r.URL, r.Arguments)
@@ -45,7 +49,7 @@ func ToVscodeSnippet(description string, prefix string, body []string) *VscodeSn
 	}
 }
 
-func createSnippetBody(kind string, name string, url string, args []Argument) []string {
+func createSnippetBody(kind string, name string, url string, args []data.Argument) []string {
 	// // Get the kind of struct
 	// kind := reflect.TypeOf(obj).Name()
 	// Convert obj to standard Ressource
@@ -72,13 +76,18 @@ func createSnippetBody(kind string, name string, url string, args []Argument) []
 	for _, a := range args {
 		arg := "\t"
 		// If the args is not required we comment it
-		if a.Required == "false" {
+		if !a.Required {
 			arg = arg + "#"
 		}
 
 		arg = arg + a.Name + " = "
 
-		body = append(body, "\t# "+a.Description+" (require="+a.Required+")")
+		var required string
+		if a.Required {
+			required = " (Required)"
+		}
+
+		body = append(body, fmt.Sprintf("\t# %s%s", a.Description, required))
 		body = append(body, arg)
 	}
 
@@ -100,13 +109,11 @@ func ResourceName(kind string, name string) string {
 }
 
 // create snippet
-func VscodeCreateSnippets(p map[string]Provider) {
-
+func VscodeCreateSnippets(p data.ProviderList) {
 	snippets := map[string]VscodeSnippet{}
 	for _, v := range p {
-
-		snippets[v.Name] = *ProviderToVscodeSnippet(v)
-		for _, d := range v.Dataresources {
+		snippets[v.Name] = *ProviderToVscodeSnippet(*v)
+		for _, d := range v.DataResources {
 			snippets[v.Name+" "+d.Name] = *DataResourceToVscodeSnippet(d, v.Name)
 		}
 
@@ -116,8 +123,13 @@ func VscodeCreateSnippets(p map[string]Provider) {
 		//result, _ := json.MarshalIndent(&snippet, "", " ")
 	}
 
-	result, _ := json.MarshalIndent(&snippets, "", " ")
+	result, err := json.MarshalIndent(&snippets, "", "    ")
+	utils.PanicOnError(err, "Converting to YAML")
 
-	ioutil.WriteFile("../vscode/terraform-auto-snippets/snippets/snippets.json", result, 0644)
-	//fmt.Print(string(result))
+	// TODO: cannot assume that we execute the program in this specific directory
+	const filename = "../vscode/terraform-auto-snippets/snippets/snippets.json"
+	err = ioutil.WriteFile(filename, result, 0644)
+	utils.PanicOnError(err, "Writing file")
+
+	fmt.Fprintf(os.Stderr, "Snippet file written: %s\n", filename)
 }

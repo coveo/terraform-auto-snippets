@@ -10,13 +10,16 @@ import (
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 )
 
-func getMockArgs() []data.Argument {
+func getMockArgs(path string) []data.Argument {
 	result := make([]data.Argument, rand.Intn(10)+1)
 	for i := 0; i < len(result); i++ {
 		result[i] = data.Argument{
-			Name:        lorem.Word(3, 15),
-			Description: lorem.Sentence(2, 10),
-			Required:    rand.Intn(3) != 0,
+			Base: data.Base{
+				Name:        lorem.Word(3, 15),
+				Description: lorem.Sentence(2, 10),
+				URL:         getMockURL(path),
+			},
+			Required: rand.Intn(3) != 0,
 		}
 	}
 	return result
@@ -27,10 +30,12 @@ func getMockResources(path string) []data.Resource {
 	for i := 0; i < len(result); i++ {
 		name := lorem.Word(3, 15)
 		result[i] = data.Resource{
-			Name:        name,
-			Description: lorem.Sentence(2, 10),
-			URL:         getMockURL(filepath.Join(path, name)),
-			Arguments:   getMockArgs(),
+			Base: data.Base{
+				Name:        name,
+				Description: lorem.Sentence(2, 10),
+				URL:         getMockURL(filepath.Join(path, name)),
+			},
+			Arguments: getMockArgs(path),
 		}
 	}
 	return result
