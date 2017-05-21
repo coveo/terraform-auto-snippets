@@ -155,6 +155,11 @@ func (wf resourceWorkForce) getResource(section string, parent url.URL, link str
 			Section:   section,
 			Arguments: getArgs(titleText, *uri, doc.Find("#argument-reference")),
 		}
+
+		doc.Find("pre.highlight.hcl").Each(func(i int, example *goquery.Selection) {
+			resource.Examples = append(resource.Examples, example.Text())
+		})
+
 		return
 	})
 	return

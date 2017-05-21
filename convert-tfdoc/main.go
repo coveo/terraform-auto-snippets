@@ -18,6 +18,7 @@ var (
 	shortSnip = app.Flag("short", "Indicates to generate long version of snippets (enabled by default, --no-short to disable)").Default("true").Bool()
 	longSnip  = app.Flag("long", "Indicates to generate short version of snippets (enabled by default, --no-long to disable)").Default("true").Bool()
 	fullSnip  = app.Flag("full", "Indicates to generate full version of snippets").Short('f').Default("false").Bool()
+	examples  = app.Flag("examples", "Indicates to generate snippets from examples").Short('e').Default("false").Bool()
 	outDir    = app.Flag("out-dir", "Output directory where to generate the snippet package").Short('o').Required().String()
 	files     = app.Arg("file", "Yaml files to import").ExistingFiles()
 )

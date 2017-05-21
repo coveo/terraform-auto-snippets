@@ -142,6 +142,10 @@ func (wf ProviderWorkForce) getProvider(link string) (provider *data.Provider, e
 			Resources:     resources.get(false),
 		}
 
+		doc.Find("pre.highlight.hcl").Each(func(i int, example *goquery.Selection) {
+			provider.Examples = append(provider.Examples, example.Text())
+		})
+
 		utils.PrintInfo(" ▪︎ %-33s %s", providerName, utils.MessagePrinter(" - %3d resource(s), %2d data", len(provider.Resources), len(provider.DataResources)))
 		return
 	})

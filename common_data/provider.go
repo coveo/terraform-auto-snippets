@@ -7,6 +7,7 @@ type Provider struct {
 	Arguments     []Argument
 	DataResources []Resource
 	Resources     []Resource
+	Examples      []string
 }
 
 // Count returns the total number of resources (data + resource) in the provider

@@ -5,4 +5,5 @@ type Resource struct {
 	Base      `yaml:",inline"`
 	Section   string
 	Arguments []Argument
+	Examples  []string
 }
