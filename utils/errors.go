@@ -2,19 +2,40 @@ package utils
 
 import (
 	"fmt"
+	"github.com/gruntwork-io/terragrunt/errors"
 	"os"
 )
 
 // TrapErrors recovers any error raised by panic and print it to stderr
 func TrapErrors(handler func(string, ...interface{})) {
 	if err := recover(); err != nil {
+		var text string
+		switch err := err.(type) {
+		case error:
+			text = errors.PrintErrorWithStackTrace(err)
+		default:
+			text = fmt.Sprintf("%v", err)
+		}
 		if handler == nil {
 			handler = func(format string, args ...interface{}) {
-				PrintError("%v", err)
+				PrintError("%v", text)
 				os.Exit(1)
 			}
 		}
-		handler("%v", err)
+		handler("%v", text)
+	}
+}
+
+// Trap any panic error and add stack trace to the resulting error
+func TrapPanic() {
+	if err := recover(); err != nil {
+		switch err := err.(type) {
+		case error:
+			panic(errors.WithStackTrace(err))
+		default:
+			fmt.Println(2)
+			panic(errors.WithStackTrace(fmt.Errorf("%v", err)))
+		}
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 
 	data "github.com/coveo/terraform-auto-snippets/common_data"
 	"github.com/coveo/terraform-auto-snippets/utils"
+	"path/filepath"
 )
 
 type VscodeSnippet struct {
@@ -110,8 +111,18 @@ func ResourceName(kind string, name string) string {
 
 // create snippet
 func VscodeCreateSnippets(p data.ProviderList) {
-	snippets := map[string]VscodeSnippet{}
+	defer utils.TrapPanic()
+
+	type Snippets map[string]VscodeSnippet
+	snippetFiles := make(map[string]Snippets)
+
 	for _, v := range p {
+		snippets, ok := snippetFiles[v.Name]
+		if !ok {
+			snippets = make(Snippets)
+			snippetFiles[v.Name] = snippets
+		}
+
 		snippets[v.Name] = *ProviderToVscodeSnippet(*v)
 		for _, d := range v.DataResources {
 			snippets[v.Name+" "+d.Name] = *DataResourceToVscodeSnippet(d, v.Name)
@@ -120,19 +131,19 @@ func VscodeCreateSnippets(p data.ProviderList) {
 		for _, r := range v.Resources {
 			snippets[v.Name+" "+r.Name] = *ResourceToVscodeSnippet(r, v.Name)
 		}
-		//result, _ := json.MarshalIndent(&snippet, "", " ")
 	}
 
-	result, err := json.MarshalIndent(&snippets, "", "    ")
-	utils.PanicOnError(err, "Converting to YAML")
+	utils.PanicOnError(RestoreAssets(*outDir, ""), "Restoring assets")
+	utils.PanicOnError(os.Mkdir(filepath.Join(*outDir, "snippets"), 0755))
 
-	err = RestoreAssets(*outDir, "")
-	utils.PanicOnError(err, "Restoring assets")
+	for key, snippets := range snippetFiles {
+		result, err := json.MarshalIndent(&snippets, "", "    ")
+		utils.PanicOnError(err, "Converting to YAML")
 
-	// TODO: cannot assume that we execute the program in this specific directory
-	const filename = "../vscode/terraform-auto-snippets/snippets/snippets.json"
-	err = ioutil.WriteFile(filename, result, 0644)
-	utils.PanicOnError(err, "Writing file")
+		filename := filepath.Join(*outDir, "snippets", key+".json")
+		err = ioutil.WriteFile(filename, result, 0644)
+		utils.PanicOnError(err, "Writing file")
 
-	fmt.Fprintf(os.Stderr, "Snippet file written: %s\n", filename)
+		utils.PrintInfo("Generating %s", filename)
+	}
 }
